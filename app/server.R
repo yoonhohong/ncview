@@ -34,11 +34,9 @@ spg_plot_param = . %>%
     ), 
     margin = list(t = 70, b=70, l=50, r=50))
 
-# Define server logic to read selected file ----
 server <- function(input, output) {
   
   input_file = reactive({
-    # input$file1 will be NULL initially.
     req(input$ncsFile)
     df <- read.csv(input$ncsFile$datapath)
     df$Date = as.Date(df$Date, format = "%Y-%m-%d")
@@ -47,9 +45,9 @@ server <- function(input, output) {
   
   output$ptTable <- renderDT({
     input_file() %>%
-      select(Hosp, ID, Name, Date)
-  }, rownames = F, selection = "single", options = list(
-    pageLength = 10))
+      select(Hosp, ID, Name, Date)}, 
+    rownames = F, selection = "single", 
+  options = list(pageLength = 10))
   
   df_selected = reactive({
     if (length(input$ptTable_rows_selected) == 0) return(NULL)
@@ -271,6 +269,195 @@ server <- function(input, output) {
               titleX = F, titleY = T) 
     p1 = style(p, traces = 1:7, showlegend = T)
     layout(p1, legend = list(font = list(size = 15)))
+  })
+  
+  
+  feature_table_cidp = reactive({
+    if (is.null(df_motor())) return(NULL) 
+    df <- df_motor() %>%
+      select(-cutoff)
+    df_cidp = spread(df, key = param, value = value)
+    
+    DML = df_cidp %>%
+      group_by(side.nerve) %>%
+      summarize(criteria = case_when(
+        is.na(DML) ~ NA, 
+        DML >=150 ~ T, 
+        TRUE ~ F), 
+        value = DML, 
+        param = "DML"
+      ) 
+    NCV1 = df_cidp %>%
+      group_by(side.nerve) %>%
+      summarise(criteria = case_when(
+        is.na(NCV1) ~ NA,
+        NCV1 <=70 ~ T, 
+        TRUE ~ F), 
+        value = NCV1, 
+        param = "NCV1")  
+    NCV2 = df_cidp %>%
+      group_by(side.nerve) %>%
+      summarise(criteria = case_when(
+        is.na(NCV2) ~ NA,
+        NCV2 <=70 ~ T, 
+        TRUE ~ F), 
+        value = NCV2, 
+        param = "NCV2") 
+    NCV3 = df_cidp %>%
+      group_by(side.nerve) %>%
+      summarise(criteria = case_when(
+        is.na(NCV3) ~ NA,
+        NCV3 <=70 ~ T, 
+        TRUE ~ F), 
+        value = NCV3, 
+        param = "NCV3")  
+    FL = df_cidp %>%
+      group_by(side.nerve) %>%
+      summarize(criteria = case_when(
+        is.na(CMAP1) ~ NA,
+        (FL >120 & CMAP1 >=80)|(FL >150 & CMAP1 <80) ~ T, 
+        TRUE ~ F), 
+        value = FL, 
+        param = "FL")
+    FA = df_cidp %>%
+      group_by(side.nerve) %>%
+      summarize(criteria = case_when(
+        is.na(CMAP1) ~ NA,
+        is.na(FL) & CMAP1 >=20 ~ T, # F-wave absence
+        TRUE ~ F), 
+        value = ifelse(is.na(criteria), NA, 0),
+        value = ifelse(isTRUE(criteria), 1, value),
+        param = "FA")
+    CB1 = df_cidp %>%
+      group_by(side.nerve) %>%
+      summarize(criteria = case_when(
+        is.na(CMAP1) ~ NA,
+        CMAP1 == 0 ~ NA,
+        CMAP2/CMAP1 <= 0.7 & CMAP1 >=20 ~ T,
+        TRUE ~ F), 
+        value = ifelse(is.na(CMAP1)|CMAP1 == 0, NA, round(CMAP2/CMAP1,2)), 
+        param = "CB1")
+    # Exclude the tibial nerve 
+    CB1$criteria[7] = ifelse(is.na(CB1$value[7]), NA, "ND") # R.TM
+    CB1$criteria[8] = ifelse(is.na(CB1$value[8]), NA, "ND") # L.TM
+    
+    CB2 = df_cidp %>%
+      group_by(side.nerve) %>%
+      summarize(criteria = case_when(
+        is.na(CMAP1) ~ NA,
+        CMAP1==0 ~ NA,
+        is.na(CMAP3) ~ NA,
+        CMAP3/CMAP1 <= 0.7 & CMAP1 >=20 ~ T,
+        TRUE ~ F), 
+        value = ifelse(is.na(CMAP1)|CMAP1==0, NA, round(CMAP3/CMAP1,2)), 
+        param = "CB2"
+      )
+    CB3 = df_cidp %>%
+      group_by(side.nerve) %>%
+      summarize(criteria = case_when(
+        is.na(CMAP1) ~ NA,
+        CMAP1==0 ~ NA,
+        is.na(CMAP4) ~ NA,
+        CMAP4/CMAP1 <= 0.7 & CMAP1 >=20 ~ T,
+        TRUE ~ F), 
+        value = ifelse(is.na(CMAP1)|CMAP1==0, NA, round(CMAP4/CMAP1,2)), 
+        param = "CB3"
+      )
+    TD1 = df_cidp %>%
+      group_by(side.nerve) %>%
+      summarise(criteria = case_when(
+        is.na(CMAP1) ~ NA,
+        CMAP1==0 ~ NA,
+        Dur2/Dur1 >1.3 ~ T,
+        TRUE ~ F), 
+        value = ifelse(is.na(CMAP1)|CMAP1==0, NA, round(Dur2/Dur1,2)), 
+        value = ifelse(CMAP2 == 0, NA, value), 
+        param = "TD1"
+      )
+    # 100% increase at least for the tibial nerve 
+    TD1_tibial = df_cidp %>%
+      filter(str_detect(side.nerve, "TM", negate = F)) %>% 
+      group_by(side.nerve) %>%
+      summarise(criteria = case_when(
+        is.na(CMAP1) ~ NA,
+        CMAP1==0 ~ NA,
+        Dur2/Dur1 >= 2 ~ T,
+        TRUE ~ F), 
+        value = ifelse(is.na(CMAP1)|CMAP1==0, NA, round(Dur2/Dur1,2)), 
+        value = ifelse(CMAP2 == 0, NA, value), 
+        param = "TD1"
+      )
+    TD1 = rbind(TD1, TD1_tibial)
+    
+    TD2 = df_cidp %>%
+      group_by(side.nerve) %>%
+      summarise(criteria = case_when(
+        is.na(CMAP1) ~ NA,
+        is.na(CMAP3) ~ NA,
+        CMAP1==0 ~ NA,
+        Dur3/Dur1 >1.3 ~ T,
+        TRUE ~ F), 
+        value = ifelse(is.na(CMAP1)|CMAP1==0, NA, round(Dur3/Dur1,2)), 
+        value = ifelse(CMAP3 == 0, NA, value), 
+        param = "TD2"
+      )
+    TD3 = df_cidp %>%
+      group_by(side.nerve) %>%
+      summarise(criteria = case_when(
+        is.na(CMAP1) ~ NA,
+        is.na(CMAP4) ~ NA,
+        Dur4/Dur1 >1.3 ~ T,
+        TRUE ~ F), 
+        value = ifelse(is.na(CMAP1)|CMAP1==0, NA, round(Dur4/Dur1,2)), 
+        value = ifelse(CMAP4 == 0, NA, value), 
+        param = "TD3"
+      )
+    DUR = df_cidp %>%
+      group_by(side.nerve) %>%
+      summarise(criteria = case_when(
+        is.na(CMAP1) ~ NA,
+        CMAP1==0 ~ NA,
+        Dur1 >= 100 ~ T, 
+        TRUE ~ F), 
+        value = Dur1, 
+        param = "DUR"
+      )
+    
+    df_cidp_table = rbind(DML, NCV1, NCV2, NCV3, FL, FA, CB1, CB2, CB3, 
+                          TD1, TD2, TD3, DUR)
+    df_cidp_table$param = factor(df_cidp_table$param, 
+                                 levels = c("DML","DUR",
+                                            "NCV1","NCV2","NCV3",
+                                            "CB1","CB2","CB3",
+                                            "TD1","TD2","TD3",
+                                            "FL","FA"))
+    df_cidp_table$side.nerve = factor(df_cidp_table$side.nerve, 
+                                      levels = c("R.MM","L.MM",
+                                                 "R.UM","L.UM",
+                                                 "R.PM","L.PM",
+                                                 "R.TM","L.TM"))
+    df_cidp_table
+  })
+  
+  output$cidp_tileView_motor = renderPlot({
+    if (is.null(feature_table_cidp())) return(NULL)
+    p <- ggplot(feature_table_cidp(), aes(x=side.nerve, y=param,
+                                          fill = criteria)) +
+      geom_tile(color = "black") + theme_minimal() +
+      geom_text(aes(label = value), size = 6) + 
+      labs(title = "2021 PNS/EFNS EDX criteria for CIDP") +
+      theme(axis.text.x = element_text(size = 14, face = "bold"),
+            axis.text.y = element_text(size = 14, face = "bold"),
+            title = element_text(size = 16, face = "bold"),
+            axis.title.x = element_blank(),
+            axis.title.y = element_blank(),
+            panel.grid = element_blank(),
+            plot.background = element_blank(),
+            legend.text = element_text(size = 14, face = "bold"))
+    p <- p + scale_fill_manual(
+      values = c("green", "grey", "red"), 
+      name = "")
+    p
   })
 }
 

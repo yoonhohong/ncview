@@ -42,7 +42,10 @@ ui <- fluidPage(
                  br(), 
                  DTOutput(outputId = "dateTable"), 
                  br(),
-                 plotlyOutput("fuView")) 
+                 plotlyOutput("fuView")), 
+        tabPanel("CIDP",
+                 br(),
+                 plotlyOutput("cidp_tileView_motor"))
       ) # tabsetPanel mainPanel 
     ) # mainPanel
   ) # sidebarLayout
