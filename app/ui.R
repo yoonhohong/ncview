@@ -45,7 +45,7 @@ ui <- fluidPage(
                  plotlyOutput("fuView")), 
         tabPanel("CIDP",
                  br(),
-                 plotlyOutput("cidp_tileView_motor"))
+                 plotOutput("cidp_tileView_motor"))
       ) # tabsetPanel mainPanel 
     ) # mainPanel
   ) # sidebarLayout
