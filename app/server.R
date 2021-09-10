@@ -2,6 +2,7 @@ library(plotly)
 library(DT)
 library(dplyr)
 library(tidyr)
+library(stringr)
 library(lubridate)
 
 
@@ -436,7 +437,7 @@ server <- function(input, output) {
                                                  "R.UM","L.UM",
                                                  "R.PM","L.PM",
                                                  "R.TM","L.TM"))
-    df_cidp_table
+    return(df_cidp_table)
   })
   
   output$cidp_tileView_motor = renderPlot({
