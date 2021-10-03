@@ -1,0 +1,7 @@
+---
+title: "About"
+output: html_document
+---
+
+NCView is an interactive web application which offers a basic yet useful tool that simplifies the exploration and analysis of NCS data. NCView is freely available, open source, and accessible via the Internet and can be used within a web browser. It is developed using R and Shiny package, and deployed in shinyapps.io. The application can be used to summarize, visualize and analyze data. 
+

@@ -1,0 +1,13 @@
+name: ncview
+title: ncview
+username:
+account: yoonhohong
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4780713
+bundleId: 5096858
+url: https://yoonhohong.shinyapps.io/ncview/
+when: 1633174116.51368
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: about.html|about.rmd

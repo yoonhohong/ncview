@@ -5,48 +5,23 @@ library(tidyr)
 library(stringr)
 library(lubridate)
 
-
-# function; spaghetti plot for fu 
-spg_plot_param = . %>%
-  plot_ly(x = ~Date, y = ~value, color = ~param,
-          legendgroup = ~param,
-          colors = "Dark2") %>%
-  add_lines(name = ~param, showlegend = F) %>%
-  add_markers(showlegend = F) %>%
-  add_annotations(
-    text = ~unique(side.nerve),
-    x = 0.5,
-    y = 1,
-    yref = "paper",
-    xref = "paper",
-    xanchor = "middle",
-    yanchor = "top",
-    showarrow = FALSE,
-    font = list(size = 15)
-  ) %>%
-  layout(
-    xaxis = list(
-      showgrid = T, 
-      tickangle = 45, 
-      tickformat = "%Y-%m"
-    ),
-    yaxis = list(
-      showgrid = T
-    ), 
-    margin = list(t = 70, b=70, l=50, r=50))
+source("helpers.R")
 
 server <- function(input, output) {
   
   input_file = reactive({
-    req(input$ncsFile)
-    df <- read.csv(input$ncsFile$datapath)
+    if (is.null(input$ncsFile)) {
+      df = readRDS(input$demo)
+    } else {
+      df <- read.csv(input$ncsFile$datapath)
+    }
     df$Date = as.Date(df$Date, format = "%Y-%m-%d")
     return(df)
   }) # input_file 
   
   output$ptTable <- renderDT({
     input_file() %>%
-      select(Hosp, ID, Name, Date)}, 
+      select(ID, Date)}, 
     rownames = F, selection = "single", 
   options = list(pageLength = 10))
   
@@ -96,7 +71,7 @@ server <- function(input, output) {
             axis.text.y = element_text(size = 16, face = "bold"), 
             axis.title.x = element_blank(), 
             axis.title.y = element_blank(),
-            plot.title = element_text(size = 24, face = "bold", hjust = -0.25),
+            plot.title = element_text(size = 24, face = "bold", hjust = 0),
             panel.grid = element_blank(),
             legend.text = element_text(size = 16, face = "bold"),
             plot.margin = margin(t=30, l=30)) + 
@@ -130,7 +105,7 @@ server <- function(input, output) {
             axis.text.y = element_text(size = 16, face = "bold"),
             axis.title.x = element_blank(),
             axis.title.y = element_blank(),
-            plot.title = element_text(size = 24, face = "bold", hjust = -0.6),
+            plot.title = element_text(size = 24, face = "bold", hjust = 0),
             panel.grid = element_blank(),
             legend.text = element_text(size = 16, face = "bold"),
             plot.margin = margin(t=30, b=80, l=30)) +
@@ -177,7 +152,7 @@ server <- function(input, output) {
         ),
         margin = list(t = 70, b=70),
         legend = list(font = list(size = 20), x = 100, y = 0.5), 
-        title = list(text = "Parameter view", x = 0, y = 1, font = list(size = 22, face = "bold"))
+        title = list(text = "Parameter view", x = 0.1, y = 1, font = list(size = 22, face = "bold"))
       )
     return(p)
   })
@@ -205,7 +180,7 @@ server <- function(input, output) {
         ),
         margin = list(t = 70, b=70),
         legend = list(font = list(size = 20), x = 100, y = 0.5), 
-        title = list(text = "Nerve view", x = 0, y = 1, font = list(size = 22, face = "bold"))
+        title = list(text = "Nerve view", x = 0.1, y = 1, font = list(size = 22, face = "bold"))
       )
     return(p)
   })
