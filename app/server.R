@@ -48,16 +48,16 @@ server <- function(input, output) {
     df_motor_A = df_motor %>%
       filter(param %in% c("DML", "Dur1", "Dur2", "Dur3", "Dur4", "FL")) %>%
       mutate(cutoff = ifelse(value > 100, "Above ULN", "WNL")) %>%
-      mutate(cutoff = ifelse(is.na(value), NA, cutoff))
+      mutate(cutoff = ifelse(is.na(value), "N/C or N/A", cutoff))
     df_motor_B = df_motor %>%
       filter(param %in% c("CMAP1","CMAP2","CMAP3","CMAP4","NCV1","NCV2","NCV3")) %>%
       mutate(cutoff = ifelse(value < 100, "Below LLN", "WNL")) %>%
-      mutate(cutoff = ifelse(is.na(value), NA, cutoff))
+      mutate(cutoff = ifelse(is.na(value), "N/C or N/A", cutoff))
     df_motor_all = rbind(df_motor_A, df_motor_B)
     df_motor_all = df_motor_all %>%
       mutate(side.nerve = factor(side.nerve, levels = c("R.MM","L.MM","R.UM","L.UM","R.PM","L.PM","R.TM","L.TM"))) %>%
       mutate(param = factor(param, levels = c("CMAP1","CMAP2","CMAP3","CMAP4","DML","Dur1","Dur2","Dur3","Dur4","NCV1","NCV2","NCV3","FL"))) %>%
-      mutate(cutoff = factor(cutoff))
+      mutate(cutoff = factor(cutoff, levels = c("WNL","Above ULN", "Below LLN", "N/C or N/A")))
     return(df_motor_all)
   })
   
@@ -75,7 +75,7 @@ server <- function(input, output) {
             panel.grid = element_blank(),
             legend.text = element_text(size = 16, face = "bold"),
             plot.margin = margin(t=30, l=30)) + 
-      scale_fill_manual(values = c("red","blue","grey"), 
+      scale_fill_manual(values = c("white", "red","blue","grey"), 
                         name = "") +
       ggtitle("Motor nerves")
     return(p)
@@ -89,9 +89,9 @@ server <- function(input, output) {
       filter(param %in% c("SNAP1","SNAP2","SNAP3","SNAP4","NCV1","NCV2","NCV3","NCV4")) %>%
       mutate(param = factor(param, levels = c("SNAP1","SNAP2","SNAP3","SNAP4","NCV1","NCV2","NCV3","NCV4"))) %>%
       mutate(cutoff = ifelse(value < 100, "Below LLN", "WNL")) %>%
-      mutate(cutoff = ifelse(is.na(value), NA, cutoff)) %>%
+      mutate(cutoff = ifelse(is.na(value), "N/C or N/A", cutoff)) %>%
       select(side.nerve, param, value, cutoff)
-    df_sensory$cutoff = factor(df_sensory$cutoff)
+    df_sensory$cutoff = factor(df_sensory$cutoff, levels = c("WNL","Below LLN","N/C or N/A"))
     return(df_sensory)
   })
   
@@ -109,8 +109,9 @@ server <- function(input, output) {
             panel.grid = element_blank(),
             legend.text = element_text(size = 16, face = "bold"),
             plot.margin = margin(t=30, b=80, l=30)) +
-      scale_fill_manual(values = c("Below LLN" = "red",
-                                   "WNL" = "green"),
+      scale_fill_manual(values = c("Below LLN" = "blue",
+                                   "WNL" = "white", 
+                                   "N/C or N/A" = "grey"),
                         name = "") + 
       ggtitle("Sensory nerves")
     return(p)
@@ -124,7 +125,7 @@ server <- function(input, output) {
       filter(param %in% c("CMAP1", "CMAP2",  
                           "DML", "Dur1", "Dur2",
                           "NCV1", "FL")) %>%
-      mutate(param = factor(param)) %>%
+      mutate(param = factor(param, levels = c("CMAP1","CMAP2","NCV1","DML","Dur1","Dur2","FL"))) %>%
       mutate(side.nerve = factor(side.nerve)) 
     return(motor_radial)
   })
@@ -208,9 +209,9 @@ server <- function(input, output) {
                           "DML", "Dur1", "Dur2", 
                           "NCV1", "FL")) %>%
       mutate(param = factor(param, 
-                            levels = c("CMAP1", "CMAP2",  
+                            levels = c("CMAP1","CMAP2","NCV1",  
                                        "DML", "Dur1", "Dur2", 
-                                       "NCV1", "FL"))) %>%
+                                       "FL"))) %>%
       select(Date, side.nerve, param, value)  %>%
       group_by(side.nerve) %>%
       mutate(all_na = all(is.na(value))) %>%
@@ -254,6 +255,11 @@ server <- function(input, output) {
       select(-cutoff)
     df_cidp = spread(df, key = param, value = value)
     
+    CMAP1 = df_cidp %>%
+      group_by(side.nerve) %>%
+      summarize(criteria = NA, 
+                value = CMAP1, 
+                param = "CMAP1")
     DML = df_cidp %>%
       group_by(side.nerve) %>%
       summarize(criteria = case_when(
@@ -290,7 +296,7 @@ server <- function(input, output) {
     FL = df_cidp %>%
       group_by(side.nerve) %>%
       summarize(criteria = case_when(
-        is.na(CMAP1) ~ NA,
+        is.na(FL) ~ NA,
         (FL >120 & CMAP1 >=80)|(FL >150 & CMAP1 <80) ~ T, 
         TRUE ~ F), 
         value = FL, 
@@ -314,8 +320,8 @@ server <- function(input, output) {
         value = ifelse(is.na(CMAP1)|CMAP1 == 0, NA, round(CMAP2/CMAP1,2)), 
         param = "CB1")
     # Exclude the tibial nerve 
-    CB1$criteria[7] = ifelse(is.na(CB1$value[7]), NA, "ND") # R.TM
-    CB1$criteria[8] = ifelse(is.na(CB1$value[8]), NA, "ND") # L.TM
+    CB1$criteria[7] = NA # R.TM
+    CB1$criteria[8] = NA # L.TM
     
     CB2 = df_cidp %>%
       group_by(side.nerve) %>%
@@ -340,6 +346,7 @@ server <- function(input, output) {
         param = "CB3"
       )
     TD1 = df_cidp %>%
+      filter(str_detect(side.nerve, "TM", negate = T)) %>% 
       group_by(side.nerve) %>%
       summarise(criteria = case_when(
         is.na(CMAP1) ~ NA,
@@ -399,10 +406,10 @@ server <- function(input, output) {
         param = "DUR"
       )
     
-    df_cidp_table = rbind(DML, NCV1, NCV2, NCV3, FL, FA, CB1, CB2, CB3, 
+    df_cidp_table = rbind(CMAP1, DML, NCV1, NCV2, NCV3, FL, FA, CB1, CB2, CB3, 
                           TD1, TD2, TD3, DUR)
     df_cidp_table$param = factor(df_cidp_table$param, 
-                                 levels = c("DML","DUR",
+                                 levels = c("CMAP1", "DML","DUR",
                                             "NCV1","NCV2","NCV3",
                                             "CB1","CB2","CB3",
                                             "TD1","TD2","TD3",
@@ -421,7 +428,16 @@ server <- function(input, output) {
                                           fill = criteria)) +
       geom_tile(color = "black") + theme_minimal() +
       geom_text(aes(label = value), size = 6) + 
-      labs(title = "2021 PNS/EFNS EDX criteria for CIDP") +
+      labs(title = "CIDP", 
+           subtitle = "At least one of the following:\n 
+DML >= 150% ULN in two nerves\n
+NCV <= 70% LLN in two nerves\n
+FL >= 120% ULN (150% if CMAP1 < 80% LLN) in two nerves\n
+FA (CMAP1 >= 20% LLN) in two nerves, plus >= 1 other parameters in >= 1 other nerve\n
+CB >= 0.3 (CMAP >= 20% LLN; excluding tibial nerve) in two nerves, or 1 nerve plus >= 1 other parameters (except FA) in >= 1 other nerve\n
+TD >= 1.3 (2 in the tibial nerve) in two nerves\n
+DUR > 100 in one nerve, plus >=1 other parameters in >= 1 other nerve\n", 
+           caption = "\n021 PNS/EFNS EDX criteria") +
       theme(axis.text.x = element_text(size = 14, face = "bold"),
             axis.text.y = element_text(size = 14, face = "bold"),
             title = element_text(size = 16, face = "bold"),
@@ -429,9 +445,10 @@ server <- function(input, output) {
             axis.title.y = element_blank(),
             panel.grid = element_blank(),
             plot.background = element_blank(),
-            legend.text = element_text(size = 14, face = "bold"))
+            legend.text = element_text(size = 14, face = "bold"), 
+            plot.subtitle = element_text(size = 10, lineheight = 0.5))
     p <- p + scale_fill_manual(
-      values = c("green", "grey", "red"), 
+      values = c("white", "red", "grey"), 
       name = "")
     p
   })

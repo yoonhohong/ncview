@@ -15,10 +15,10 @@ ui <- fluidPage(
     sidebarPanel(
 
       # Input: Select a Demo Data or user can select a file ----
-      selectInput("demo", "Choose a Demo Dataset",
+      selectInput("demo", "Choose a demo dataset",
                   choices = c("CIDP" = "data/cidp_demo.rds")),
       h6("OR"), 
-      fileInput("ncsFile", "Choose a Your Dataset (.csv)",
+      fileInput("ncsFile", "Upload your dataset (.csv)",
                 multiple = TRUE,
                 accept = c("text/csv",
                            "text/comma-separated-values,text/plain",
@@ -45,8 +45,9 @@ ui <- fluidPage(
                  br(),
                  DTOutput(outputId = "dateTable"),
                  br(),
+                 
                  plotlyOutput("fuView")),
-        tabPanel("CIDP",
+        tabPanel("Diagnosis",
                  br(),
                  fluidRow(
                    column(12, plotOutput("cidp_tileView_motor"))
