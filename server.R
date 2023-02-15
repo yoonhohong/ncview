@@ -1,9 +1,6 @@
 library(plotly)
 library(DT)
-library(dplyr)
-library(tidyr)
-library(stringr)
-library(lubridate)
+library(tidyverse)
 
 source("helpers.R")
 
