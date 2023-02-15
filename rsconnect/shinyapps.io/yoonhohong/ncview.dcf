@@ -5,9 +5,9 @@ account: yoonhohong
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4780713
-bundleId: 6847602
+bundleId: 6847919
 url: https://yoonhohong.shinyapps.io/ncview/
-when: 1676427143.54165
-lastSyncTime: 1676427143.54165
+when: 1676433596.95955
+lastSyncTime: 1676433596.95955
 asMultiple: FALSE
 asStatic: FALSE
