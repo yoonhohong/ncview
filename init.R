@@ -1,5 +1,5 @@
 
-my_packages = c("DT", "plotly", "tidyverse")
+my_packages = c("DT", "plotly", "tidyverse", "lubridate")
 
 install_if_missing = function(p) {
   if (p %in% rownames(installed.packages()) == FALSE) {
