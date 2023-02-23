@@ -38,6 +38,8 @@ server <- function(input, output) {
     return(df_selected)
   })
   
+  
+  # tileplot view 
   df_motor = reactive({
     if (is.null(df_selected())) return(NULL)
     df_motor = df_selected() %>%
@@ -64,15 +66,10 @@ server <- function(input, output) {
     p <- ggplot(df_motor(), aes(x=side.nerve, y=param, 
                                     fill = factor(cutoff))) + 
       geom_tile(color = "black") + 
-      geom_text(aes(label = value), size = 8) + theme_minimal() + 
-      theme(axis.text.x = element_text(size = 16, face = "bold"), 
-            axis.text.y = element_text(size = 16, face = "bold"), 
-            axis.title.x = element_blank(), 
+      geom_text(aes(label = value)) + theme_minimal() + 
+      theme(axis.title.x = element_blank(), 
             axis.title.y = element_blank(),
-            plot.title = element_text(size = 24, face = "bold", hjust = 0),
-            panel.grid = element_blank(),
-            legend.text = element_text(size = 16, face = "bold"),
-            plot.margin = margin(t=30, l=30)) + 
+            panel.grid = element_blank()) + 
       scale_fill_manual(values = c("white", "red","blue","grey"), 
                         name = "") +
       ggtitle("Motor nerves")
@@ -98,14 +95,10 @@ server <- function(input, output) {
     p <- ggplot(df_sensory(), aes(x=side.nerve, y=param,
                                   fill = cutoff)) +
       geom_tile(color = "black") +
-      geom_text(aes(label = value), size = 8) + theme_minimal() +
-      theme(axis.text.x = element_text(size = 16, face = "bold"),
-            axis.text.y = element_text(size = 16, face = "bold"),
-            axis.title.x = element_blank(),
+      geom_text(aes(label = value)) + theme_minimal() +
+      theme(axis.title.x = element_blank(),
             axis.title.y = element_blank(),
-            plot.title = element_text(size = 24, face = "bold", hjust = 0),
             panel.grid = element_blank(),
-            legend.text = element_text(size = 16, face = "bold"),
             plot.margin = margin(t=30, b=80, l=30)) +
       scale_fill_manual(values = c("Below LLN" = "blue",
                                    "WNL" = "white", 
@@ -115,6 +108,7 @@ server <- function(input, output) {
     return(p)
   })
   
+  # radialplot view 
   df_motor_radial = reactive({
     if (is.null(df_motor())) return(NULL) 
     motor_radial <- df_motor() 
@@ -246,7 +240,7 @@ server <- function(input, output) {
     layout(p1, legend = list(font = list(size = 15)))
   })
   
-  
+  # diagnosis view 
   feature_table_cidp = reactive({
     if (is.null(df_motor())) return(NULL) 
     df <- df_motor() %>%
@@ -424,31 +418,16 @@ server <- function(input, output) {
     if (is.null(feature_table_cidp())) return(NULL)
     p <- ggplot(feature_table_cidp(), aes(x=side.nerve, y=param,
                                           fill = criteria)) +
-      geom_tile(color = "black") + theme_minimal() +
-      geom_text(aes(label = value), size = 6) + 
-      labs(title = "CIDP", 
-           subtitle = "At least one of the following:\n 
-DML >= 150% ULN in two nerves\n
-NCV <= 70% LLN in two nerves\n
-FL >= 120% ULN (150% if CMAP1 < 80% LLN) in two nerves\n
-FA (CMAP1 >= 20% LLN) in two nerves, plus >= 1 other parameters in >= 1 other nerve\n
-CB >= 0.3 (CMAP >= 20% LLN; excluding tibial nerve) in two nerves, or 1 nerve plus >= 1 other parameters (except FA) in >= 1 other nerve\n
-TD >= 1.3 (2 in the tibial nerve) in two nerves\n
-DUR > 100 in one nerve, plus >=1 other parameters in >= 1 other nerve\n", 
-           caption = "\n021 PNS/EFNS EDX criteria") +
-      theme(axis.text.x = element_text(size = 14, face = "bold"),
-            axis.text.y = element_text(size = 14, face = "bold"),
-            title = element_text(size = 16, face = "bold"),
-            axis.title.x = element_blank(),
+      geom_tile(color = "black") +
+      geom_text(aes(label = value)) + theme_minimal() +
+      theme(axis.title.x = element_blank(),
             axis.title.y = element_blank(),
             panel.grid = element_blank(),
-            plot.background = element_blank(),
-            legend.text = element_text(size = 14, face = "bold"), 
-            plot.subtitle = element_text(size = 10, lineheight = 0.5))
-    p <- p + scale_fill_manual(
-      values = c("white", "red", "grey"), 
-      name = "")
-    p
+            plot.margin = margin(t=30, l=30, r=30)) + 
+      scale_fill_manual(values = c("white", "red", "grey"), 
+                        name = "") + 
+      ggtitle("CIDP")
+    return(p)
   })
 }
 
