@@ -11,7 +11,7 @@ server <- function(input, output) {
     if (is.null(input$ncsFile)) {
       df = readRDS(input$demo)
     } else {
-      df <- read.csv(input$ncsFile$datapath)
+      df <- read_csv(input$ncsFile$datapath)
     }
     df$Date = as.Date(df$Date, format = "%Y-%m-%d")
     return(df)
@@ -70,7 +70,7 @@ server <- function(input, output) {
       theme(axis.title.x = element_blank(), 
             axis.title.y = element_blank(),
             panel.grid = element_blank()) + 
-      scale_fill_manual(values = c("white", "red","blue","grey"), 
+      scale_fill_manual(values = c("white", "orange","skyblue","grey"), 
                         name = "") +
       ggtitle("Motor nerves")
     return(p)
@@ -100,7 +100,7 @@ server <- function(input, output) {
             axis.title.y = element_blank(),
             panel.grid = element_blank(),
             plot.margin = margin(t=30, b=80, l=30)) +
-      scale_fill_manual(values = c("Below LLN" = "blue",
+      scale_fill_manual(values = c("Below LLN" = "skyblue",
                                    "WNL" = "white", 
                                    "N/C or N/A" = "grey"),
                         name = "") + 
@@ -411,6 +411,7 @@ server <- function(input, output) {
                                                  "R.UM","L.UM",
                                                  "R.PM","L.PM",
                                                  "R.TM","L.TM"))
+    df_cidp_table$criteria = fct_explicit_na(factor(df_cidp_table$criteria), "NA")
     return(df_cidp_table)
   })
   
@@ -424,7 +425,9 @@ server <- function(input, output) {
             axis.title.y = element_blank(),
             panel.grid = element_blank(),
             plot.margin = margin(t=30, l=30, r=30)) + 
-      scale_fill_manual(values = c("white", "red", "grey"), 
+      scale_fill_manual(values = c("FALSE" = "white", 
+                                   "TRUE" = "orange", 
+                                   "NA" = "grey"), 
                         name = "") + 
       ggtitle("CIDP")
     return(p)

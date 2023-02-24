@@ -16,7 +16,9 @@ ui <- fluidPage(
 
       # Input: Select a Demo Data or user can select a file ----
       selectInput("demo", "Choose a demo dataset",
-                  choices = c("CIDP" = "data/cidp_demo.rds")),
+                  choices = c("CIDP" = "data/cidp_demo.rds", 
+                              "GBS" = "data/gbs_demo.rds", 
+                              "CMT" = "data/cmt_demo.rds")),
       h6("OR"), 
       fileInput("ncsFile", "Upload your dataset (.csv)",
                 multiple = TRUE,
