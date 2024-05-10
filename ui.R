@@ -6,7 +6,7 @@ ui <- fluidPage(
 
   # App title ----
   titlePanel("NCView"),
-  h4("A visual analytic system for nerve conduction study"),
+  h4("A graphical representation and analytic system for nerve conduction study"),
   tags$hr(),
   # Sidebar layout with input and output definitions ----
   sidebarLayout(
